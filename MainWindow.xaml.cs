@@ -27,18 +27,19 @@ namespace GSFSRChanger
 
         private void Conf_Click(object sender, RoutedEventArgs e)
         {
-            if (!GenShenResl.SetResl(Convert.ToInt32(sHeight.Text)
-                , Convert.ToInt32(sWidth.Text)))
-                MessageBox.Show("写入失败", "错误", MessageBoxButton.OK);
-            else
-                SystemSounds.Asterisk.Play(); ;
+            if (sHeight.Text == "" || sWidth.Text == "")
+                MessageBox.Show("请输入分辨率", "无效的分辨率", MessageBoxButton.OK);
+            else if(GenShenResl.SetResl(Convert.ToInt32(sHeight.Text)
+                , Convert.ToInt32(sWidth.Text),Game.SelectedIndex))
+                SystemSounds.Asterisk.Play();
+
         }
 
         private void Read_Click(object sender, RoutedEventArgs e)
         {
             sWidth.Text = "读取中...";
             sHeight.Text = "读取中...";
-            int[] Resl = GenShenResl.ReadResl();
+            int[] Resl = GenShenResl.ReadResl(Game.SelectedIndex);
             if (Resl[0] != -1 && Resl[1] != -1)
             {
                 sHeight.Text = Resl[0].ToString();

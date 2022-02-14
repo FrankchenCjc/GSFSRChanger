@@ -5,8 +5,12 @@ using System.Data;
 using System.Linq;
 using System.Windows;
 using System.Media;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
+using System.Windows.Forms;
+using MessageBox = System.Windows.MessageBox;
+using Application = System.Windows.Application;
 
 namespace GSFSRChanger
 {
@@ -26,15 +30,24 @@ namespace GSFSRChanger
         /// <summary>
         /// 读取一个分辨率
         /// </summary>
-        public static int[] ReadResl()
+        public static int[] ReadResl(int game )
         {
             int[] Resl = new int[2];
             Resl[0] = -1;
             Resl[1] = -1;
+            RegistryKey GenshenKey = null;
 
             try
             {
-                RegistryKey GenshenKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\miHoYo\\原神");
+                if (game == 0)
+                {
+                    GenshenKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\miHoYo\\原神");
+                }
+                else if (game == 1)
+                {
+                    GenshenKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\miHoYo\\崩坏3");
+                }
+
                 foreach (string key
                     in GenshenKey.GetValueNames())
                 {
@@ -48,11 +61,8 @@ namespace GSFSRChanger
             }
             catch
             {
-                SystemSounds.Beep.Play();
-                MessageBox.Show(
-                    "读出注册表错误",
-                    "失败",
-                    MessageBoxButton.OK);
+                Resl[0] = -1;
+                Resl[1] = -1;
             }
             return Resl;
         }
@@ -60,10 +70,10 @@ namespace GSFSRChanger
         /// <summary>
         /// 写入一个分辨率
         /// </summary>
-        public static bool SetResl(int Height,int Width)
+        public static bool SetResl(int Height,int Width,int game)
         {
-            if (SystemParameters.FullPrimaryScreenHeight < Height
-                || SystemParameters.FullPrimaryScreenWidth < Width)
+            if (Screen.PrimaryScreen.Bounds.Height < Height
+                || Screen.PrimaryScreen.Bounds.Width < Width)
             {
                 SystemSounds.Asterisk.Play();
                 if (MessageBoxResult.No ==
@@ -82,9 +92,18 @@ namespace GSFSRChanger
                         MessageBoxButton.OK);
             }
 
+            RegistryKey GenshenKey = null;
             try
             {
-                RegistryKey GenshenKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\miHoYo\\原神",true);
+                if (game == 0)
+                {
+                    GenshenKey = Registry.CurrentUser.CreateSubKey("SOFTWARE\\miHoYo\\原神");
+                }
+                else if (game == 1)
+                {
+                    GenshenKey = Registry.CurrentUser.CreateSubKey("SOFTWARE\\miHoYo\\崩坏3");
+                }
+
                 foreach (string key
                     in GenshenKey.GetValueNames())
                 {
@@ -96,13 +115,10 @@ namespace GSFSRChanger
                 GenshenKey.Close();
                 return true;
             }
-            catch
+            catch (Exception e)
             {
-                SystemSounds.Beep.Play();
-                MessageBox.Show(
-                    "写入注册表错误",
-                    "失败",
-                    MessageBoxButton.OK);
+                MessageBox.Show("写入失败\n" +e.GetType() +" : "+ e.Message, "错误", MessageBoxButton.OK);
+
                 return false;
             }
         }
